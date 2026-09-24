@@ -1,9 +1,30 @@
 import sys
 import time
 import requests
+import threading
+import time
 from scapy.all import sniff, IP, TCP, UDP, ICMP, ARP
 
 LARAVEL_API_URL = "http://127.0.0.1:8000/api"
+SETTINGS = {'realtime_alerts': True, 'port_scan': True, 'flooding': True}
+WATCHLIST_IPS = []
+
+def sync_settings():
+    global SETTINGS
+    while True:
+        try:
+            resp = requests.get(f"{LARAVEL_API_URL}/settings")
+            if resp.status_code == 200:
+                SETTINGS = resp.json()
+
+            wl_resp = requests.get(f"{LARAVEL_API_URL}/watchlist")
+            if wl_resp.status_code == 200:
+                global WATCHLIST_IPS
+                WATCHLIST_IPS = wl_resp.json()
+        except: pass
+        time.sleep(2)
+
+threading.Thread(target=sync_settings, daemon=True).start()
 
 # Configuration
 PORT_SCAN_THRESHOLD = 15   # Alert if one IP hits >15 ports
@@ -11,6 +32,15 @@ TIME_WINDOW = 5            # In seconds
 
 # State trackers
 recent_connections = {}    # { source_ip: { timestamp: [ports] } }
+DISCOVERED_DEVICES = {}    # { mac_address: timestamp }
+
+def auto_ban_ip(ip_address, reason):
+    if ip_address not in WATCHLIST_IPS:
+        try:
+            requests.get(f"{LARAVEL_API_URL}/watchlist/auto", params={'ip_address': ip_address, 'reason': reason}, timeout=1)
+            WATCHLIST_IPS.append(ip_address)
+        except:
+            pass
 
 def send_packet_log(src_ip, dst_ip, protocol, src_mac, dst_mac, length):
     try:
@@ -91,21 +121,43 @@ def process_packet(packet):
         if random.random() < 0.1:
             send_packet_log(src_ip, dst_ip, protocol, src_mac, dst_mac, length)
             print(f"[+] Logged Packet: {src_ip} -> {dst_ip}")
-        
+                    # Network Device Discovery (throttle to once per 60 seconds per device)
+            if src_mac and src_mac != '00:00:00:00:00:00':
+                last_seen = DISCOVERED_DEVICES.get(src_mac, 0)
+                if current_time - last_seen > 60:
+                    DISCOVERED_DEVICES[src_mac] = current_time
+                    try:
+                        requests.get(f"{LARAVEL_API_URL}/devices", params={'mac_address': src_mac, 'ip_address': src_ip}, timeout=1)
+                    except:
+                        pass
+
         # 2. Threat Detection Rules
         if dst_port:
-            # Alert on normal web traffic (Port 80 HTTP or 443 HTTPS) to generate screenshots
-            if dst_port in [80, 443] and random.random() < 0.05:
-                send_threat_alert("Suspicious Web Traffic", "Medium", src_ip, dst_ip, src_mac, f"Unverified outbound connection to port {dst_port}")
+            if not SETTINGS.get('realtime_alerts', True): return
 
-            # Rule A: Unusual Ports (e.g. 6667 IRC often used by old botnets)
+            # Rule A: Suspicious Web Traffic Monitoring (Unverified HTTP/HTTPS outbound)
+            if dst_port in [80, 443]:
+                # Samples 5% of web traffic as unverified background telemetry
+                import random
+                if random.random() < 0.05:
+                    send_threat_alert("Suspicious Web Traffic", "Medium", src_ip, dst_ip, src_mac, f"Unverified outbound connection to port {dst_port}")
+
+            # Rule B: Unusual Ports (e.g. 6667 IRC often used by old botnets)
             if dst_port in [6667, 31337]:
                 send_threat_alert("Unusual Port", "High", src_ip, dst_ip, src_mac, f"Traffic on unauthorized port {dst_port}")
+                auto_ban_ip(src_ip, f"Unauthorized access to port {dst_port}")
                 
+                        # Watchlist Checking
+            if src_ip in WATCHLIST_IPS:
+                if random.random() < 0.1: # Throttle to prevent database spam
+                    send_threat_alert("Watchlist Violation", "Critical", src_ip, dst_ip, src_mac, f"Traffic intercepted from flagged IP {src_ip}")
+
             # Rule B: Port Scanning Detection
-            scanned_count = detect_port_scan(src_ip, dst_port, current_time)
-            if scanned_count > 0:
-                send_threat_alert("Port Scan", "Critical", src_ip, dst_ip, src_mac, f"Scanned {scanned_count} ports in {TIME_WINDOW}s")
+            if SETTINGS.get('port_scan', True):
+                scanned_count = detect_port_scan(src_ip, dst_port, current_time)
+                if scanned_count > 0:
+                    send_threat_alert("Port Scan", "Critical", src_ip, dst_ip, src_mac, f"Scanned {scanned_count} ports in {TIME_WINDOW}s")
+                    auto_ban_ip(src_ip, "Detected performing a rapid Port Scan")
 
 print("NetSentinel Capture Engine Started.")
 print("Sniffing network traffic... Press Ctrl+C to stop.")
@@ -115,3 +167,8 @@ try:
 except KeyboardInterrupt:
     print("\nCapture stopped.")
     sys.exit(0)
+
+
+
+
+

@@ -6,13 +6,13 @@
           <div class="title">Network Overview</div>
           <div class="subtitle">Monitoring eth0 · Real-time packet capture &amp; threat detection</div>
         </div>
-        <div class="interface-pill mono">● eth0 — 1.2k pkt/s</div>
+        <div class="interface-pill mono">● eth0 — {{ $livePacketRate }} pkt/s</div>
       </div>
 
       <div class="pulse-card">
         <div class="pulse-label mono">LIVE&nbsp;SIGNAL</div>
         <div class="pulse-canvas-wrap"><canvas id="pulse" width="700" height="44" style="width:100%; height:44px;"></canvas></div>
-        <div class="pulse-stat">1,284<small>packets / sec</small></div>
+        <div class="pulse-stat">{{ $livePacketRate }}<small>packets / sec</small></div>
       </div>
 
       <div class="stats-row">
