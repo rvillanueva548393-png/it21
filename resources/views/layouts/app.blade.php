@@ -141,28 +141,34 @@ function toggleCapture() {
 </script>
 
 <script>
-let isCapturing = false;
+let isCapturing = localStorage.getItem('isCapturing') === 'true';
 
-function toggleCapture() {
+function updateButtonUI() {
   const btn = document.getElementById('toggleBtn');
-  
-  if (!isCapturing) {
-    // START
+  if (!btn) return;
+  if (isCapturing) {
     btn.innerHTML = 'STOP CAPTURE';
     btn.style.background = 'rgba(239, 68, 68, 0.1)';
     btn.style.color = '#EF4444';
     btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-    isCapturing = true;
-    
-    fetch('/api/engine/start').then(r => r.json()).catch(()=>{});
   } else {
-    // STOP
     btn.innerHTML = 'START CAPTURE';
     btn.style.background = 'rgba(16, 185, 129, 0.1)';
     btn.style.color = '#10B981';
     btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
-    isCapturing = false;
-    
+  }
+}
+
+document.addEventListener('DOMContentLoaded', updateButtonUI);
+
+function toggleCapture() {
+  isCapturing = !isCapturing;
+  localStorage.setItem('isCapturing', isCapturing);
+  updateButtonUI();
+  
+  if (isCapturing) {
+    fetch('/api/engine/start').then(r => r.json()).catch(()=>{});
+  } else {
     fetch('/api/engine/stop').catch(()=>{});
   }
 }
