@@ -54,7 +54,7 @@
           </a>
           @endif
 
-    <form method="POST" action="{{ route('logout') }}" style="margin-top:auto;">
+    <form method="POST" action="{{ route('logout') }}">
       @csrf
       <button type="submit" class="sidebar-foot" style="background:none; border:none; width:100%; text-decoration:none; text-align:left;">
         <div class="dot-live"></div>
@@ -108,37 +108,7 @@
   }, 3000);
 </script>
 
-<script>
-let isCapturing = false;
 
-function toggleCapture() {
-  const btn = document.getElementById('toggleBtn');
-  
-  if (!isCapturing) {
-    // START
-    btn.innerHTML = 'STOP CAPTURE';
-    btn.style.background = 'rgba(239, 68, 68, 0.1)';
-    btn.style.color = '#EF4444';
-    btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-    isCapturing = true;
-    
-    fetch('/api/engine/start').then(function(r){ return r.json(); }).then(function(data){
-      // Silently start
-    }).catch(function(){});
-  } else {
-    // STOP
-    btn.innerHTML = 'START CAPTURE';
-    btn.style.background = 'rgba(16, 185, 129, 0.1)';
-    btn.style.color = '#10B981';
-    btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
-    isCapturing = false;
-    
-    fetch('/api/engine/stop').then(function(){
-      // Silently stop
-    });
-  }
-}
-</script>
 
 <script>
 let isCapturing = localStorage.getItem('isCapturing') === 'true';
