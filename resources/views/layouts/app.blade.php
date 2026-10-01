@@ -61,6 +61,18 @@
         Sign out
       </button>
     </form>
+
+
+    <div style="margin-top: auto; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; margin-bottom: 10px;">Engine Control</div>
+        <button onclick="fetch('/api/engine/start').then(()=>alert('Python Capture Engine Started!'))" style="width: 100%; padding: 10px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; margin-bottom: 8px; font-weight: bold; transition: 0.2s;">
+            START CAPTURE
+        </button>
+        <button onclick="fetch('/api/engine/stop').then(()=>alert('Python Capture Engine Stopped!'))" style="width: 100%; padding: 10px; background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+            STOP CAPTURE
+        </button>
+    </div>
+
 </div>
 
 <div class="main">
@@ -72,5 +84,28 @@
 
 <script src="{{ asset('js/netsentinel.js') }}"></script>
 @yield('scripts')
+<script>
+  let currentThreatCount = null;
+  
+  // Fetch initial count
+  fetch('/api/threat-count')
+    .then(res => res.json())
+    .then(data => { currentThreatCount = data.count; });
+
+  // Poll every 3 seconds
+  setInterval(() => {
+    if (currentThreatCount !== null) {
+      fetch('/api/threat-count')
+        .then(res => res.json())
+        .then(data => {
+          if (data.count > currentThreatCount) {
+            // New threat detected! Refresh the page automatically
+            window.location.reload();
+          }
+        });
+    }
+  }, 3000);
+</script>
 </body>
 </html>
+

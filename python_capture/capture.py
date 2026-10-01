@@ -5,7 +5,7 @@ import threading
 import time
 from scapy.all import sniff, IP, TCP, UDP, ICMP, ARP
 
-LARAVEL_API_URL = "http://127.0.0.1:8000/api"
+LARAVEL_API_URL = "https://it21-production.up.railway.app/api"
 SETTINGS = {'realtime_alerts': True, 'port_scan': True, 'flooding': True}
 WATCHLIST_IPS = []
 
@@ -167,6 +167,7 @@ try:
 except KeyboardInterrupt:
     print("\nCapture stopped.")
     sys.exit(0)
+
 
 
 

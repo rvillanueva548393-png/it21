@@ -125,3 +125,25 @@ Route::get('/api/watchlist/auto', function (\Illuminate\Http\Request $request) {
     return response()->json(['status' => 'success']);
 });
 
+
+Route::get('/api/threat-count', function () {
+    return response()->json(['count' => \App\Models\ThreatLog::count()]);
+});
+
+Route::get('/api/engine/start', function () {
+    pclose(popen('start "NetSentinelEngine" cmd /k "cd ' . base_path('python_capture') . ' && python capture.py"', 'r'));
+    return response()->json(['status' => 'started']);
+});
+
+Route::get('/api/engine/stop', function () {
+    exec('taskkill /FI "WINDOWTITLE eq NetSentinelEngine*" /T /F');
+    return response()->json(['status' => 'stopped']);
+});
+
+Route::post('/watchlist/add', function (\Illuminate\Http\Request $request) {
+    \App\Models\IpWatchlist::firstOrCreate(
+        ['ip_address' => $request->ip_address],
+        ['reason' => $request->reason]
+    );
+    return redirect('/watchlist')->with('success', 'IP has been added to the watchlist!');
+});
