@@ -108,22 +108,34 @@
 </script>
 
 <script>
-function startCapture() {
-  fetch('/api/engine/start').then(function(r){ return r.json(); }).then(function(data){
-    if(data.status === 'started'){
-      alert('Capture engine launched! Check your local terminal.');
-    } else {
-      showLocalInstructions();
-    }
-  }).catch(function(){ showLocalInstructions(); });
-}
-function stopCapture() {
-  fetch('/api/engine/stop').then(function(){
-    alert('Capture engine stopped.');
-  });
-}
-function showLocalInstructions() {
-  alert('IMPORTANT: On Railway, Python must run on your LOCAL laptop!\n\nHow to start capturing:\n1. Open Git Bash on your laptop\n2. Run: cd ~/NetSentinel/python_capture\n3. Run: python capture.py\n\nOR simply double-click Start_NetSentinel.bat in your NetSentinel folder!');
+let isCapturing = false;
+
+function toggleCapture() {
+  const btn = document.getElementById('toggleBtn');
+  
+  if (!isCapturing) {
+    // START
+    btn.innerHTML = 'STOP CAPTURE';
+    btn.style.background = 'rgba(239, 68, 68, 0.1)';
+    btn.style.color = '#EF4444';
+    btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+    isCapturing = true;
+    
+    fetch('/api/engine/start').then(function(r){ return r.json(); }).then(function(data){
+      // Silently start
+    }).catch(function(){});
+  } else {
+    // STOP
+    btn.innerHTML = 'START CAPTURE';
+    btn.style.background = 'rgba(16, 185, 129, 0.1)';
+    btn.style.color = '#10B981';
+    btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+    isCapturing = false;
+    
+    fetch('/api/engine/stop').then(function(){
+      // Silently stop
+    });
+  }
 }
 </script>
 </body>

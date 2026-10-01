@@ -131,12 +131,12 @@ Route::get('/api/threat-count', function () {
 });
 
 Route::get('/api/engine/start', function () {
-    pclose(popen('start "NetSentinelEngine" cmd /k "cd ' . base_path('python_capture') . ' && python capture.py"', 'r'));
+    pclose(popen('nohup python ' . base_path('python_capture/capture_cloud.py') . ' > /dev/null 2>&1 &', 'r'));
     return response()->json(['status' => 'started']);
 });
 
 Route::get('/api/engine/stop', function () {
-    exec('taskkill /FI "WINDOWTITLE eq NetSentinelEngine*" /T /F');
+    exec('pkill -f capture_cloud.py');
     return response()->json(['status' => 'stopped']);
 });
 
