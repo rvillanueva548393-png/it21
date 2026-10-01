@@ -63,13 +63,14 @@
     </form>
 
 
+    
+
+
+
     <div style="margin-top: auto; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.05);">
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; margin-bottom: 10px;">Engine Control</div>
-        <button onclick="startCapture()" style="width: 100%; padding: 10px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; margin-bottom: 8px; font-weight: bold; transition: 0.2s;">
+        <button id="toggleBtn" onclick="toggleCapture()" style="width: 100%; padding: 10px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s;">
             START CAPTURE
-        </button>
-        <button onclick="stopCapture()" style="width: 100%; padding: 10px; background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
-            STOP CAPTURE
         </button>
     </div>
 
@@ -138,6 +139,35 @@ function toggleCapture() {
   }
 }
 </script>
+
+<script>
+let isCapturing = false;
+
+function toggleCapture() {
+  const btn = document.getElementById('toggleBtn');
+  
+  if (!isCapturing) {
+    // START
+    btn.innerHTML = 'STOP CAPTURE';
+    btn.style.background = 'rgba(239, 68, 68, 0.1)';
+    btn.style.color = '#EF4444';
+    btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+    isCapturing = true;
+    
+    fetch('/api/engine/start').then(r => r.json()).catch(()=>{});
+  } else {
+    // STOP
+    btn.innerHTML = 'START CAPTURE';
+    btn.style.background = 'rgba(16, 185, 129, 0.1)';
+    btn.style.color = '#10B981';
+    btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+    isCapturing = false;
+    
+    fetch('/api/engine/stop').catch(()=>{});
+  }
+}
+</script>
 </body>
+
 </html>
 
