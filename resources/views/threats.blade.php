@@ -58,7 +58,7 @@
     <div class="panel-title">Threat Detection Logs</div>
   </div>
   <table>
-    <thead><tr><th>AttackID</th><th>Attack Type</th><th>Severity</th><th>Attacker IP</th><th>Victim IP</th><th>Attacker MAC</th><th>Detection Time</th><th>Status</th><th>Description</th><th>Action</th></tr></thead>
+    <thead><tr><th>AttackID</th><th>Attack Type</th><th>Severity</th><th>Attacker IP</th><th>Victim IP</th><th>Attacker MAC</th><th>Detection Time</th><th>Status</th><th style="width: 30%;">Description</th><th>Action</th></tr></thead>
     <tbody>
       @forelse($threats as $threat)
       <tr>
@@ -70,7 +70,7 @@
         <td class="mono">{{ $threat->attacker_mac ?? 'Unknown' }}</td>
         <td class="mono">{{ $threat->created_at }}</td>
         <td>{{ $threat->status }}</td>
-        <td>{{ $threat->description }}</td>
+        <td style="max-width: 250px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.4;">{{ $threat->description }}</td>
         <td>
           <button onclick="analyzeRow('{{ $threat->id }}','{{ $threat->attack_type }}','{{ $threat->severity }}','{{ $threat->attacker_ip }}','{{ $threat->victim_ip ?? 'N/A' }}','{{ $threat->attacker_mac ?? 'Unknown' }}','{{ $threat->created_at }}','{{ addslashes($threat->description) }}')"
             style="padding:5px 12px; background:rgba(79,224,199,0.1); color:#4FE0C7; border:1px solid rgba(79,224,199,0.4); border-radius:5px; cursor:pointer; font-size:12px; font-weight:bold; white-space:nowrap;">
