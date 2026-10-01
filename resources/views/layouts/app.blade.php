@@ -86,64 +86,48 @@
 <script src="{{ asset('js/netsentinel.js') }}"></script>
 @yield('scripts')
 <script>
-  let currentThreatCount = null;
-  
-  // Fetch initial count
-  fetch('/api/threat-count')
-    .then(res => res.json())
-    .then(data => { currentThreatCount = data.count; });
+// =========== Threat Auto-Refresh ===========
+let currentThreatCount = null;
+fetch('/api/threat-count').then(r=>r.json()).then(d=>{ currentThreatCount = d.count; });
+setInterval(()=>{
+  if(currentThreatCount !== null){
+    fetch('/api/threat-count').then(r=>r.json()).then(d=>{
+      if(d.count > currentThreatCount){ window.location.reload(); }
+    });
+  }
+}, 3000);
 
-  // Poll every 3 seconds
-  setInterval(() => {
-    if (currentThreatCount !== null) {
-      fetch('/api/threat-count')
-        .then(res => res.json())
-        .then(data => {
-          if (data.count > currentThreatCount) {
-            // New threat detected! Refresh the page automatically
-            window.location.reload();
-          }
-        });
-    }
-  }, 3000);
-</script>
-
-
-
-<script>
-let isCapturing = localStorage.getItem('isCapturing') === 'true';
-
+// =========== Toggle Capture Button (persists across pages) ===========
 function updateButtonUI() {
   const btn = document.getElementById('toggleBtn');
   if (!btn) return;
-  if (isCapturing) {
+  const capturing = localStorage.getItem('netsentinel_capturing') === 'true';
+  if (capturing) {
     btn.innerHTML = 'STOP CAPTURE';
-    btn.style.background = 'rgba(239, 68, 68, 0.1)';
+    btn.style.background = 'rgba(239,68,68,0.1)';
     btn.style.color = '#EF4444';
-    btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+    btn.style.borderColor = 'rgba(239,68,68,0.5)';
   } else {
     btn.innerHTML = 'START CAPTURE';
-    btn.style.background = 'rgba(16, 185, 129, 0.1)';
+    btn.style.background = 'rgba(16,185,129,0.1)';
     btn.style.color = '#10B981';
-    btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+    btn.style.borderColor = 'rgba(16,185,129,0.5)';
   }
 }
 
-document.addEventListener('DOMContentLoaded', updateButtonUI);
-
 function toggleCapture() {
-  isCapturing = !isCapturing;
-  localStorage.setItem('isCapturing', isCapturing);
+  const capturing = localStorage.getItem('netsentinel_capturing') === 'true';
+  const newState = !capturing;
+  localStorage.setItem('netsentinel_capturing', newState);
   updateButtonUI();
-  
-  if (isCapturing) {
-    fetch('/api/engine/start').then(r => r.json()).catch(()=>{});
+  if (newState) {
+    fetch('/api/engine/start').then(r=>r.json()).catch(()=>{});
   } else {
     fetch('/api/engine/stop').catch(()=>{});
   }
 }
+
+document.addEventListener('DOMContentLoaded', updateButtonUI);
 </script>
 </body>
-
 </html>
-
