@@ -65,10 +65,10 @@
 
     <div style="margin-top: auto; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.05);">
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; margin-bottom: 10px;">Engine Control</div>
-        <button onclick="fetch('/api/engine/start').then(()=>alert('Python Capture Engine Started!'))" style="width: 100%; padding: 10px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; margin-bottom: 8px; font-weight: bold; transition: 0.2s;">
+        <button onclick="startCapture()" style="width: 100%; padding: 10px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 6px; cursor: pointer; margin-bottom: 8px; font-weight: bold; transition: 0.2s;">
             START CAPTURE
         </button>
-        <button onclick="fetch('/api/engine/stop').then(()=>alert('Python Capture Engine Stopped!'))" style="width: 100%; padding: 10px; background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+        <button onclick="stopCapture()" style="width: 100%; padding: 10px; background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
             STOP CAPTURE
         </button>
     </div>
@@ -105,6 +105,26 @@
         });
     }
   }, 3000);
+</script>
+
+<script>
+function startCapture() {
+  fetch('/api/engine/start').then(function(r){ return r.json(); }).then(function(data){
+    if(data.status === 'started'){
+      alert('Capture engine launched! Check your local terminal.');
+    } else {
+      showLocalInstructions();
+    }
+  }).catch(function(){ showLocalInstructions(); });
+}
+function stopCapture() {
+  fetch('/api/engine/stop').then(function(){
+    alert('Capture engine stopped.');
+  });
+}
+function showLocalInstructions() {
+  alert('IMPORTANT: On Railway, Python must run on your LOCAL laptop!\n\nHow to start capturing:\n1. Open Git Bash on your laptop\n2. Run: cd ~/NetSentinel/python_capture\n3. Run: python capture.py\n\nOR simply double-click Start_NetSentinel.bat in your NetSentinel folder!');
+}
 </script>
 </body>
 </html>
